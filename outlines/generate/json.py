@@ -21,6 +21,7 @@ def json(
     schema_object: Union[str, object, Callable],
     sampler: Sampler = multinomial(),
     whitespace_pattern: Optional[str] = None,
+    catch_json_decoding_error: bool = False,
 ) -> SequenceGeneratorAdapter:
     """
     Generate structured JSON data with a `Transformer` model based on a specified JSON Schema.
@@ -77,6 +78,17 @@ def json(
             + "a Pydantic object, a function or a string that contains the JSON "
             + "Schema specification"
         )
+
+    if catch_json_decoding_error:
+
+        def safe_format_sequence(x):
+            try:
+                return generator.format_sequence(x)
+            except ValueError as e:
+                print("Error in decoding string:", x)
+                return "JSONDecodeError"
+
+        generator.format_sequence = safe_format_sequence
 
     return generator
 
